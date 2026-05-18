@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>2分钱1图 BizyAir API 插件</title>
+  <link rel="stylesheet" href="../../../plugin-sdk.css">
+  <style>
+    /* ===== 与 zealman 完全一致的输入框暗底（硬编码 fallback） =====
+       即使 plugin-sdk.css 未生效，也保证 input/select 都是这套配色 */
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    input[type="url"],
+    textarea,
+    select {
+      background: #282b38 !important;
+      border: 1px solid #45485a !important;
+      color: #e5e5e5 !important;
+      border-radius: 6px;
+      box-sizing: border-box;
+      padding: 6px 10px;
+      font-family: "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+      font-size: 12px;
+      outline: none;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(255, 255, 255, 0.4) !important;
+    }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #6c5ce7 !important;
+    }
+    select option {
+      background: #282b38 !important;
+      color: #e5e5e5 !important;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+    .form-label {
+      width: 110px;
+      flex: 0 0 110px;
+      font-size: 13px;
+      color: var(--text-secondary, #c7c9d1);
+      padding-top: 6px;
+      line-height: 1.4;
+    }
+    .form-label-stacked {
+      line-height: 1.25;
+    }
+    .form-control {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .mono-input {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    .pair-row {
+      display: flex;
+      gap: 6px;
+    }
+    .pair-row > * {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .mini-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      border: 1px solid rgba(120, 120, 140, 0.45);
+      background: rgba(120, 120, 140, 0.12);
+      color: inherit;
+    }
+    .mini-btn:active { opacity: 0.85; }
+
+    /* —— 颜色：API Key 强调蓝（亮色） —— */
+    input.mono-input.tone-key {
+      background: rgba(45, 212, 191, 0.28) !important;
+      border: 1px solid rgba(20, 184, 166, 0.85) !important;
+      color: #f0fdfa !important;
+    }
+    input.mono-input.tone-key::placeholder {
+      color: rgba(240, 253, 250, 0.55) !important;
+    }
+    /* —— 模式下拉：亮色，便于一眼识别 —— */
+    select.mono-input.tone-mode {
+      background: rgba(45, 212, 191, 0.32) !important;
+      border: 1px solid rgba(20, 184, 166, 0.85) !important;
+      color: #f0fdfa !important;
+      font-weight: 600;
+    }
+    /* —— 其余下拉（比例 / 分辨率） —— */
+    select.mono-input.tone-blue,
+    input.mono-input.tone-blue {
+      background: rgba(6, 182, 212, 0.12) !important;
+      border: 1px solid rgba(8, 145, 178, 0.42) !important;
+      color: #cffafe !important;
+    }
+    /* —— 参考图映射行：彩色区分（必须用 !important 覆盖前面 select 的硬编码暗底） —— */
+    .pair-row.tone-img-slot-1 select { background: rgba(99, 102, 241, 0.18) !important; border: 1px solid rgba(79, 70, 229, 0.55) !important; color: #e0e7ff !important; }
+    .pair-row.tone-img-slot-2 select { background: rgba(168, 85, 247, 0.18) !important; border: 1px solid rgba(147, 51, 234, 0.55) !important; color: #f3e8ff !important; }
+    .pair-row.tone-img-slot-3 select { background: rgba(56, 189, 248, 0.18) !important; border: 1px solid rgba(14, 165, 233, 0.55) !important; color: #e0f2fe !important; }
+    .pair-row.tone-img-slot-4 select { background: rgba(232, 121, 249, 0.18) !important; border: 1px solid rgba(217, 70, 239, 0.55) !important; color: #fae8ff !important; }
+    .pair-row.tone-img-slot-5 select { background: rgba(34, 211, 238, 0.18) !important; border: 1px solid rgba(6, 182, 212, 0.55) !important; color: #cffafe !important; }
+
+    /* —— 顶部说明 —— */
+    .plugin-mirror-notice {
+      margin: 0 0 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #bbb;
+    }
+    .plugin-mirror-notice-title {
+      font-weight: 600;
+      color: #e5e5e5;
+      margin-bottom: 6px;
+    }
+    .plugin-mirror-notice a {
+      color: #7dd3fc;
+      word-break: break-all;
+    }
+    .plugin-mirror-notice .ad-line {
+      margin-top: 6px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(250, 204, 21, 0.10);
+      border: 1px solid rgba(202, 138, 4, 0.45);
+      color: #fef9c3;
+    }
+    .plugin-mirror-notice .ad-line a {
+      color: #fde68a;
+      text-decoration: underline;
+    }
+    .plugin-mirror-notice .ad-line .qq-tag {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(250, 204, 21, 0.18);
+      border: 1px solid rgba(202, 138, 4, 0.5);
+      color: #fef9c3;
+    }
+
+    /* —— 文生图时隐藏参考图相关区域 —— */
+    .hidden { display: none !important; }
+
+    /* —— 账户查询按钮 + 结果显示 —— */
+    .account-row .account-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mini-btn.tone-account {
+      background: rgba(45, 212, 191, 0.20) !important;
+      border: 1px solid rgba(20, 184, 166, 0.75) !important;
+      color: #ccfbf1 !important;
+    }
+    .mini-btn.tone-account:hover {
+      background: rgba(45, 212, 191, 0.30) !important;
+    }
+    .account-info-line {
+      margin-top: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+      background: rgba(45, 212, 191, 0.10);
+      border: 1px solid rgba(20, 184, 166, 0.45);
+      color: #ccfbf1;
+      min-height: 14px;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+    .account-info-line.is-error {
+      background: rgba(252, 165, 165, 0.18);
+      border-color: rgba(239, 68, 68, 0.55);
+      color: #ffe4e6;
+    }
+    .account-info-line.is-empty {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="plugin-mirror-notice">
+    <div class="plugin-mirror-notice-title">版本1.1</div>
+    <div>
+      API Key 注册 / 充值地址：
+      <a href="https://bizyair.cn/" target="_blank" rel="noopener noreferrer">https://bizyair.cn/</a>
+    </div>
+    <div class="ad-line">
+      comfyui 全能带字字插件镜像：
+      <a href="https://autodl.art/app/market/22?v=514" target="_blank" rel="noopener noreferrer">https://autodl.art/app/market/22?v=514</a>
+      <span class="qq-tag">QQ群 1046279436</span>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">API Key</label>
+    <div class="form-control">
+      <input type="password" id="apiKeyInput" class="mono-input tone-key"
+             placeholder="BizyAir API Key（在 https://bizyair.cn/ 个人中心生成）"
+             autocomplete="off">
+    </div>
+  </div>
+
+  <div class="form-row account-row">
+    <label class="form-label">账户查询</label>
+    <div class="form-control">
+      <div class="account-btns">
+        <button type="button" id="btnQueryUser" class="mini-btn tone-account">查询用户信息</button>
+        <button type="button" id="btnQueryWallet" class="mini-btn tone-account">查询余额</button>
+      </div>
+      <div id="accountInfoLine" class="account-info-line is-empty"></div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">生成模式</label>
+    <div class="form-control">
+      <select id="modeSelect" class="mono-input tone-mode">
+        <option value="gpt2_t2i">GPT-Image-2 文生图</option>
+        <option value="gpt2_i2i">GPT-Image-2 图生图</option>
+        <option value="nanobanana2_i2i">NanoBanana 2 图生图</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">图片比例</label>
+    <div class="form-control">
+      <select id="aspectRatioSelect" class="mono-input tone-blue">
+        <option value="1:1">1:1（正方形）</option>
+        <option value="2:3">2:3（竖）</option>
+        <option value="3:2">3:2（横）</option>
+        <option value="4:5">4:5（竖）</option>
+        <option value="5:4">5:4（横）</option>
+        <option value="9:16" selected>9:16（手机竖屏）</option>
+        <option value="16:9">16:9（横屏）</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">分辨率</label>
+    <div class="form-control">
+      <select id="resolutionSelect" class="mono-input tone-blue">
+        <option value="1k" selected>1K</option>
+        <option value="2k">2K</option>
+        <option value="4k">4K</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="imageMapsContainer"></div>
+  <div class="form-row" id="addImageMapRow">
+    <label class="form-label"></label>
+    <div class="form-control">
+      <button type="button" id="addImageMapBtn" class="mini-btn">+ 增加一个参考图位</button>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">请求超时(秒)</label>
+    <div class="form-control">
+      <input type="number" id="requestTimeoutInput" class="mono-input"
+             min="30" max="3600" step="1" value="120">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">轮询间隔(秒)</label>
+    <div class="form-control">
+      <input type="number" id="pollIntervalInput" class="mono-input"
+             min="1" max="60" step="0.5" value="3">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <label class="form-label">最长等待(秒)</label>
+    <div class="form-control">
+      <input type="number" id="maxWaitInput" class="mono-input"
+             min="30" max="86400" step="1" value="600">
+    </div>
+  </div>
+
+  <script src="../../../plugin-sdk.js"></script>
+  <script>
+    var MIN_IMAGE_MAP_ROWS = 1
+    var MAX_IMAGE_MAP_ROWS = 10
+
+    var apiKeyInput = document.getElementById('apiKeyInput')
+    var modeSelect = document.getElementById('modeSelect')
+    var aspectRatioSelect = document.getElementById('aspectRatioSelect')
+    var resolutionSelect = document.getElementById('resolutionSelect')
+    var requestTimeoutInput = document.getElementById('requestTimeoutInput')
+    var pollIntervalInput = document.getElementById('pollIntervalInput')
+    var maxWaitInput = document.getElementById('maxWaitInput')
+
+    var imageMapsContainer = document.getElementById('imageMapsContainer')
+    var addImageMapBtn = document.getElementById('addImageMapBtn')
+    var addImageMapRow = document.getElementById('addImageMapRow')
+
+    var btnQueryUser = document.getElementById('btnQueryUser')
+    var btnQueryWallet = document.getElementById('btnQueryWallet')
+    var accountInfoLine = document.getElementById('accountInfoLine')
+
+    var imageMapRows = []
+    var isApplying = false
+
+    // 哪些模式需要参考图
+    var I2I_MODES = { 'gpt2_i2i': true, 'nanobanana2_i2i': true }
+
+    // ===== 价格表（金币/张），以 BizyAir 官方为准 =====
+    // ¥89 专业版 / 450000 金币 ≈ 1 金币 0.0002 元
+    var COIN_TO_RMB = 89 / 450000
+    var PRICE_TABLE = {
+      'gpt2_t2i':        { '1k': 100, '2k': 100, '4k': 100 },
+      'gpt2_i2i':        { '1k': 100, '2k': 100, '4k': 100 },
+      'nanobanana2_i2i': { '1k': 200, '2k': 200, '4k': 250 }
+    }
+    function coinsToRmbText(coins) {
+      var yuan = coins * COIN_TO_RMB
+      var fen = Math.round(yuan * 100)
+      if (fen >= 1) return '≈ ' + fen + ' 分钱'
+      return '≈ ' + yuan.toFixed(4) + ' 元'
+    }
+    // 仅给「分辨率」下拉每个 option 追加金币 / 约等于多少钱
+    function annotateOptionPrices() {
+      var mode = modeSelect.value
+      var t = PRICE_TABLE[mode] || {}
+      for (var j = 0; j < resolutionSelect.options.length; j++) {
+        var rop = resolutionSelect.options[j]
+        var rbase = rop.getAttribute('data-label') || rop.textContent.split(' · ')[0]
+        rop.setAttribute('data-label', rbase)
+        var c = t[rop.value]
+        rop.textContent = c != null
+          ? (rbase + ' · ' + c + ' 金币 ' + coinsToRmbText(c))
+          : rbase
+      }
+    }
+
+    function isI2IMode(mode) {
+      return !!I2I_MODES[mode]
+    }
+
+    function updateImageMapVisibility() {
+      var show = isI2IMode(modeSelect.value)
+      imageMapsContainer.classList.toggle('hidden', !show)
+      addImageMapRow.classList.toggle('hidden', !show)
+    }
+
+    function refOptionList() {
+      return [
+        ['', '不使用'],
+        ['首帧', '首帧'],
+        ['尾帧', '尾帧'],
+        ['图1', '图1'],
+        ['图2', '图2'],
+        ['图3', '图3'],
+        ['图4', '图4'],
+        ['图5', '图5'],
+        ['图6', '图6'],
+        ['图7', '图7'],
+        ['图8', '图8']
+      ]
+    }
+
+    function fillRefSelect(selectEl, value) {
+      selectEl.innerHTML = ''
+      refOptionList().forEach(function (pair) {
+        var opt = document.createElement('option')
+        opt.value = pair[0]
+        opt.textContent = pair[1]
+        selectEl.appendChild(opt)
+      })
+      var strVal = String(value == null ? '' : value)
+      for (var i = 0; i < selectEl.options.length; i++) {
+        if (selectEl.options[i].value === strVal) {
+          selectEl.selectedIndex = i
+          return
+        }
+      }
+    }
+
+    function refreshLabels() {
+      imageMapRows.forEach(function (row, idx) {
+        row.label.innerHTML = '参考图 ' + (idx + 1)
+      })
+    }
+
+    function syncRemoveButtons() {
+      var show = imageMapRows.length > MIN_IMAGE_MAP_ROWS
+      imageMapRows.forEach(function (row) {
+        row.removeBtn.style.display = show ? 'inline-block' : 'none'
+      })
+      addImageMapBtn.disabled = imageMapRows.length >= MAX_IMAGE_MAP_ROWS
+    }
+
+    function reassignSlotClasses() {
+      imageMapRows.forEach(function (row, idx) {
+        var slot = (idx % 5) + 1
+        row.pairRow.className = 'form-control pair-row tone-img-slot-' + slot
+      })
+    }
+
+    function saveImageMappings() {
+      if (isApplying) return
+      var rows = imageMapRows.map(function (row) {
+        return { source: row.sourceSelect.value }
+      })
+      PluginSDK.saveParam('image_input_mappings', rows)
+    }
+
+    function removeImageMapRow(row) {
+      if (imageMapRows.length <= MIN_IMAGE_MAP_ROWS) return
+      var i = imageMapRows.indexOf(row)
+      if (i === -1) return
+      imageMapRows.splice(i, 1)
+      row.wrap.remove()
+      refreshLabels()
+      reassignSlotClasses()
+      syncRemoveButtons()
+      saveImageMappings()
+    }
+
+    function addImageMapRowItem(initialSource) {
+      var idx = imageMapRows.length
+      var slot = (idx % 5) + 1
+
+      var wrap = document.createElement('div')
+      wrap.className = 'form-row'
+
+      var label = document.createElement('label')
+      label.className = 'form-label form-label-stacked'
+      label.innerHTML = '参考图 ' + (idx + 1)
+
+      var pairRow = document.createElement('div')
+      pairRow.className = 'form-control pair-row tone-img-slot-' + slot
+
+      var sourceSelect = document.createElement('select')
+      sourceSelect.className = 'mono-input'
+      fillRefSelect(sourceSelect, initialSource || '')
+
+      var removeBtn = document.createElement('button')
+      removeBtn.type = 'button'
+      removeBtn.className = 'mini-btn'
+      removeBtn.textContent = '删'
+      removeBtn.style.display = 'none'
+
+      pairRow.appendChild(sourceSelect)
+      pairRow.appendChild(removeBtn)
+      wrap.appendChild(label)
+      wrap.appendChild(pairRow)
+      imageMapsContainer.appendChild(wrap)
+
+      var row = {
+        wrap: wrap, label: label, pairRow: pairRow,
+        sourceSelect: sourceSelect, removeBtn: removeBtn
+      }
+      imageMapRows.push(row)
+
+      sourceSelect.addEventListener('change', saveImageMappings)
+      removeBtn.addEventListener('click', function () { removeImageMapRow(row) })
+
+      refreshLabels()
+      reassignSlotClasses()
+      syncRemoveButtons()
+    }
+
+    function clearImageMapRows() {
+      imageMapsContainer.innerHTML = ''
+      imageMapRows = []
+    }
+
+    addImageMapBtn.addEventListener('click', function () {
+      if (imageMapRows.length >= MAX_IMAGE_MAP_ROWS) return
+      addImageMapRowItem('')
+      saveImageMappings()
+    })
+
+    // —— 全局字段 ——
+    apiKeyInput.addEventListener('change', function () {
+      PluginSDK.saveParam('api_key', apiKeyInput.value.trim())
+    })
+    modeSelect.addEventListener('change', function () {
+      PluginSDK.saveParam('mode', modeSelect.value)
+      updateImageMapVisibility()
+      annotateOptionPrices()
+    })
+    aspectRatioSelect.addEventListener('change', function () {
+      PluginSDK.saveParam('aspect_ratio', aspectRatioSelect.value)
+    })
+    resolutionSelect.addEventListener('change', function () {
+      PluginSDK.saveParam('resolution', resolutionSelect.value)
+    })
+    requestTimeoutInput.addEventListener('change', function () {
+      PluginSDK.saveParam('request_timeout', parseInt(requestTimeoutInput.value, 10) || 120)
+    })
+    pollIntervalInput.addEventListener('change', function () {
+      PluginSDK.saveParam('poll_interval_sec', parseFloat(pollIntervalInput.value) || 3)
+    })
+    maxWaitInput.addEventListener('change', function () {
+      PluginSDK.saveParam('max_wait_sec', parseInt(maxWaitInput.value, 10) || 600)
+    })
+
+    // ===== BizyAir 账户查询（直接 fetch 官方 API） =====
+    var BIZYAIR_BASE = 'https://api.bizyair.cn'
+
+    function showAccountInfo(text, isError) {
+      accountInfoLine.textContent = text || ''
+      accountInfoLine.classList.toggle('is-error', !!isError)
+      accountInfoLine.classList.toggle('is-empty', !text)
+    }
+
+    function pickFirstDefined(obj, keys) {
+      if (!obj || typeof obj !== 'object') return undefined
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i]
+        if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k]
+      }
+      return undefined
+    }
+
+    function bizyairFetch(path) {
+      var key = (apiKeyInput.value || '').trim()
+      if (!key) {
+        showAccountInfo('请先填写 API Key', true)
+        return Promise.reject(new Error('NO_API_KEY'))
+      }
+      showAccountInfo('查询中...', false)
+      return fetch(BIZYAIR_BASE + path, {
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + key }
+      }).then(function (resp) {
+        return resp.text().then(function (txt) {
+          var data
+          try { data = txt ? JSON.parse(txt) : {} } catch (e) { data = { _raw: txt } }
+          if (resp.status >= 400) {
+            var msg = (data && (data.message || data.msg || data.error)) || ('HTTP ' + resp.status)
+            throw new Error(msg)
+          }
+          return data
+        })
+      })
+    }
+
+    btnQueryUser.addEventListener('click', function () {
+      bizyairFetch('/x/v1/user/metadata').then(function (resp) {
+        var data = (resp && resp.data) ? resp.data : resp
+        var name = pickFirstDefined(data, ['nickname', 'nickName', 'username', 'userName', 'name'])
+        var uid  = pickFirstDefined(data, ['userId', 'user_id', 'uid', 'id'])
+        var email = pickFirstDefined(data, ['email', 'mail'])
+        var phone = pickFirstDefined(data, ['phone', 'mobile'])
+        var parts = []
+        if (name) parts.push('昵称: ' + name)
+        if (uid != null) parts.push('UID: ' + uid)
+        if (email) parts.push('邮箱: ' + email)
+        if (phone) parts.push('手机: ' + phone)
+        if (!parts.length) parts.push(JSON.stringify(data))
+        showAccountInfo(parts.join('  ·  '), false)
+      }).catch(function (err) {
+        if (err && err.message === 'NO_API_KEY') return
+        showAccountInfo('查询用户失败: ' + (err && err.message || err), true)
+      })
+    })
+
+    // 把整数金币按价目表（GPT-Image-2 100 金币 ≈ 2 分）做估算
+    function fmtRmb(coins) {
+      var yuan = coins * COIN_TO_RMB
+      if (yuan >= 1) return '≈ ¥' + yuan.toFixed(2)
+      var fen = Math.round(yuan * 100)
+      return '≈ ' + fen + ' 分钱'
+    }
+    function fmtCoinShort(n) {
+      var v = Number(n) || 0
+      if (v >= 10000) return (v / 10000).toFixed(v >= 100000 ? 1 : 2).replace(/\.?0+$/, '') + 'w'
+      if (v >= 1000)  return (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace(/\.?0+$/, '') + 'k'
+      return String(v)
+    }
+    function estimateImages(coins) {
+      var g  = Math.floor(coins / 100)    // GPT-Image-2: 100 金币/张
+      var nb1 = Math.floor(coins / 200)   // NanoBanana 2 (1K/2K): 200
+      var nb4 = Math.floor(coins / 250)   // NanoBanana 2 (4K): 250
+      return 'GPT-Image-2 ≈ ' + g + ' 张  ·  NanoBanana 2 1K/2K ≈ ' + nb1 + ' 张  ·  4K ≈ ' + nb4 + ' 张'
+    }
+
+    btnQueryWallet.addEventListener('click', function () {
+      bizyairFetch('/y/v1/wallet').then(function (resp) {
+        var data = (resp && resp.data) ? resp.data : resp
+
+        // BizyAir 实际返回：total_balance_amount / charge_balance_amount / gift_balance_amount
+        var total  = pickFirstDefined(data, ['total_balance_amount', 'totalBalanceAmount', 'total', 'balance', 'coin', 'coins'])
+        var charge = pickFirstDefined(data, ['charge_balance_amount', 'chargeBalanceAmount', 'charge'])
+        var gift   = pickFirstDefined(data, ['gift_balance_amount', 'giftBalanceAmount', 'gift'])
+
+        if (typeof total !== 'number') {
+          showAccountInfo(JSON.stringify(data), false)
+          return
+        }
+
+        var lines = []
+        lines.push('总余额  ' + total.toLocaleString() + ' 金币 (' + fmtCoinShort(total) + ')  ' + fmtRmb(total))
+        if (typeof charge === 'number') {
+          lines.push('· 充值  ' + charge.toLocaleString() + ' 金币  ' + fmtRmb(charge))
+        }
+        if (typeof gift === 'number') {
+          lines.push('· 赠送  ' + gift.toLocaleString() + ' 金币  ' + fmtRmb(gift))
+        }
+        lines.push('可生成  ' + estimateImages(total))
+
+        showAccountInfo(lines.join('\n'), false)
+      }).catch(function (err) {
+        if (err && err.message === 'NO_API_KEY') return
+        showAccountInfo('查询余额失败: ' + (err && err.message || err), true)
+      })
+    })
+
+    PluginSDK.onReady(function (params) {
+      isApplying = true
+      try {
+        if (params.api_key != null) apiKeyInput.value = params.api_key
+
+        var modeVal = params.mode != null ? String(params.mode) : 'gpt2_t2i'
+        var hasMode = false
+        for (var mi = 0; mi < modeSelect.options.length; mi++) {
+          if (modeSelect.options[mi].value === modeVal) {
+            modeSelect.selectedIndex = mi
+            hasMode = true
+            break
+          }
+        }
+        if (!hasMode) modeSelect.selectedIndex = 0
+
+        if (params.aspect_ratio != null) {
+          for (var i = 0; i < aspectRatioSelect.options.length; i++) {
+            if (aspectRatioSelect.options[i].value === String(params.aspect_ratio)) {
+              aspectRatioSelect.selectedIndex = i
+              break
+            }
+          }
+        }
+        if (params.resolution != null) {
+          var rv = String(params.resolution).toLowerCase()
+          for (var j = 0; j < resolutionSelect.options.length; j++) {
+            if (resolutionSelect.options[j].value === rv) {
+              resolutionSelect.selectedIndex = j
+              break
+            }
+          }
+        }
+        if (params.request_timeout != null) requestTimeoutInput.value = params.request_timeout
+        if (params.poll_interval_sec != null) pollIntervalInput.value = params.poll_interval_sec
+        if (params.max_wait_sec != null) maxWaitInput.value = params.max_wait_sec
+
+        clearImageMapRows()
+        var mappings = Array.isArray(params.image_input_mappings)
+          ? params.image_input_mappings
+          : [{ source: '首帧' }, { source: '图1' }]
+        var n = Math.max(MIN_IMAGE_MAP_ROWS, Math.min(MAX_IMAGE_MAP_ROWS, mappings.length))
+        for (var k = 0; k < n; k++) {
+          var item = mappings[k] || {}
+          addImageMapRowItem(item.source || '')
+        }
+
+        updateImageMapVisibility()
+        annotateOptionPrices()
+      } finally {
+        isApplying = false
+      }
+    })
+  </script>
+</body>
+</html>

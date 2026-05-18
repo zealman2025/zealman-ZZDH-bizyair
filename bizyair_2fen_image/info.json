@@ -1,0 +1,4 @@
+{
+  "name": "2分钱1图 BizyAir API 插件",
+  "description": "通过 BizyAir 官方 OpenAPI 调用 GPT-Image-2 文生图 / 图生图，以及 NanoBanana 2 图生图\nAPI Key 获取：https://bizyair.cn/"
+}
