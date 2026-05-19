@@ -291,7 +291,7 @@
     <label class="form-label">最长等待(秒)</label>
     <div class="form-control">
       <input type="number" id="maxWaitInput" class="mono-input"
-             min="30" max="86400" step="1" value="600">
+             min="30" max="86400" step="1" value="1200">
     </div>
   </div>
 
@@ -512,7 +512,7 @@
       PluginSDK.saveParam('poll_interval_sec', parseFloat(pollIntervalInput.value) || 3)
     })
     maxWaitInput.addEventListener('change', function () {
-      PluginSDK.saveParam('max_wait_sec', parseInt(maxWaitInput.value, 10) || 600)
+      PluginSDK.saveParam('max_wait_sec', parseInt(maxWaitInput.value, 10) || 1200)
     })
 
     // ===== BizyAir 账户查询（直接 fetch 官方 API） =====

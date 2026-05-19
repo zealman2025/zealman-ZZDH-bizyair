@@ -129,7 +129,7 @@ _DEFAULT_PARAMS: Dict[str, Any] = {
     ],
     "request_timeout": 120,
     "poll_interval_sec": 3,
-    "max_wait_sec": 600,
+    "max_wait_sec": 1200,
     "suppress_preview_output": True,
 }
 
@@ -621,7 +621,7 @@ def generate(context) -> List[str]:
     )
     request_timeout = int(plugin_params.get("request_timeout") or 120)
     poll_interval = float(plugin_params.get("poll_interval_sec") or 3)
-    max_wait = float(plugin_params.get("max_wait_sec") or 600)
+    max_wait = float(plugin_params.get("max_wait_sec") or 1200)
     suppress_preview = bool(plugin_params.get("suppress_preview_output", True))
 
     web_app_id = int(mode_cfg["web_app_id"])

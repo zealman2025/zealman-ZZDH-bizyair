@@ -1,7 +1,8 @@
 # 2分钱1图 BizyAir API 插件
 
-## 注册与 API Key
+调用BizyAir API，在字字动画内以约 2～5 分钱/张的成本，调用 GPT-Image-2 文生图 / 图生图与 NanoBanana 2 图生图。
 
+## 注册与 API Key
 1. 打开 **https://bizyair.cn/** ，注册或登录账号。
 2. 在 BizyAir 个人中心按指引创建 / 复制 **API Key**。
 3. 在本插件设置页「API Key」中粘贴保存，即可在字字动画内发起文生图 / 图生图。
