@@ -232,6 +232,7 @@
       <select id="modeSelect" class="mono-input tone-mode">
         <option value="gpt2_t2i">GPT-Image-2 文生图</option>
         <option value="gpt2_i2i">GPT-Image-2 图生图</option>
+        <option value="nanobanana2_t2i">NanoBanana 2 文生图</option>
         <option value="nanobanana2_i2i">NanoBanana 2 图生图</option>
       </select>
     </div>
@@ -328,6 +329,7 @@
     var PRICE_TABLE = {
       'gpt2_t2i':        { '1k': 100, '2k': 100, '4k': 100 },
       'gpt2_i2i':        { '1k': 100, '2k': 100, '4k': 100 },
+      'nanobanana2_t2i': { '1k': 200, '2k': 200, '4k': 250 },
       'nanobanana2_i2i': { '1k': 200, '2k': 200, '4k': 250 }
     }
     function coinsToRmbText(coins) {

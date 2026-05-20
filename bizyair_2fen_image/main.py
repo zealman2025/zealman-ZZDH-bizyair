@@ -3,9 +3,10 @@
 2分钱1图 BizyAir API 插件
 
 支持的模式（由 UI 下拉选择）：
-- gpt2_t2i        : GPT-Image-2 文生图     web_app_id=52330, 节点 56:BizyAir_GPT_IMAGE_2_T2I_API
-- gpt2_i2i        : GPT-Image-2 图生图     web_app_id=52304, 节点 55:BizyAir_GPT_IMAGE_2_I2I_API
-- nanobanana2_i2i : NanoBanana 2 图生图    web_app_id=47114, 节点 35:BizyAir_NanoBanana2
+- gpt2_t2i         : GPT-Image-2 文生图     web_app_id=52330, 节点 56:BizyAir_GPT_IMAGE_2_T2I_API
+- gpt2_i2i         : GPT-Image-2 图生图     web_app_id=52304, 节点 55:BizyAir_GPT_IMAGE_2_I2I_API
+- nanobanana2_t2i  : NanoBanana 2 文生图    web_app_id=54388, 节点 59:BizyAir_NanoBanana2
+- nanobanana2_i2i  : NanoBanana 2 图生图    web_app_id=47114, 节点 35:BizyAir_NanoBanana2
 
 公共流程：
 - 任务：POST /create（X-Bizyair-Task-Async: enable）→ GET /detail 轮询 → GET /outputs 取 object_url
@@ -86,6 +87,17 @@ _MODE_CONFIGS: Dict[str, Dict[str, Any]] = {
         "extra_input_values": {},
         "resolution_case": "lower",
     },
+    "nanobanana2_t2i": {
+        "label": "NanoBanana 2 文生图",
+        "kind": "t2i",
+        "web_app_id": 54388,
+        "node_prefix": "59:BizyAir_NanoBanana2",
+        "load_image_keys": [],
+        "extra_input_values": {
+            "59:BizyAir_NanoBanana2.mode": "third-party",
+        },
+        "resolution_case": "upper",
+    },
     "nanobanana2_i2i": {
         "label": "NanoBanana 2 图生图",
         "kind": "i2i",
@@ -144,10 +156,11 @@ def get_info():
     return {
         "name": "2分钱1图 BizyAir API 插件",
         "description": (
-            "通过 BizyAir 官方 OpenAPI 调用 GPT-Image-2 文生图 / 图生图、NanoBanana 2 图生图。\n"
+            "通过 BizyAir 官方 OpenAPI 调用 GPT-Image-2 文生图 / 图生图，"
+            "以及 NanoBanana 2 文生图 / 图生图。\n"
             "API Key 获取：https://bizyair.cn/"
         ),
-        "version": "1.1.0",
+        "version": "1.2.0",
         "author": "User",
     }
 
